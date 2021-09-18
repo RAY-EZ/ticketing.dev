@@ -42,6 +42,9 @@ app.get('/api/users/', (req, res) => {
 app.use(errorHandler);
 
 const start = async ()=> {
+  if(!process.env.JWT_KEY){
+    throw new Error('JWT key must be defined as environment variable');
+  }
   try {
     await mongoose.connect('mongodb://auth-mongo-srv:27017/auth');
   } catch (err){

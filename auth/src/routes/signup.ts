@@ -3,6 +3,8 @@ import { body, validationResult } from 'express-validator';
 import { User } from '../models/user';
 import { BadRequestError } from '../errors/bad-request-error';
 
+import { validateRequest } from '../middlewares/validate-request'
+
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
@@ -15,12 +17,13 @@ router.post('/api/users/signup',
         .trim()
         .isLength({ min: 4, max: 20 })
         .withMessage('Password length must be between 4 and 20 characters'),
+        validateRequest,
     async (req: Request, res: Response, next: NextFunction) => {
-        const error = validationResult(req);
+        // const error = validationResult(req);
 
-        if (!error.isEmpty()) {
-            return res.status(400).send(error.array());
-        }
+        // if (!error.isEmpty()) {
+        //     return res.status(400).send(error.array());
+        // }
 
         const {email, password} = req.body;
         const existingUser = await User.findOne({email});
@@ -34,7 +37,9 @@ router.post('/api/users/signup',
         const userJwt = jwt.sign({
           id:user.id,
           email: user.email
-        }, 'fuckyou');
+        },
+        process.env.JWT_KEY! 
+        );
 
         req.session= {
           jwt: userJwt
