@@ -24,7 +24,6 @@ router.post('/api/users/signup',
         // if (!error.isEmpty()) {
         //     return res.status(400).send(error.array());
         // }
-
         const {email, password} = req.body;
         const existingUser = await User.findOne({email});
 

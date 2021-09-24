@@ -8,11 +8,12 @@ export class Password {
     const salt = randomBytes(8).toString('hex');
     const buf = (await scryptAsync(password, salt, 64)) as Buffer;
 
-    console.log(buf, salt);
+    // console.log(buf, salt);
 
     return `${buf.toString('hex')}.${salt}`;
   }
   static async compare(storedPassword: string, suppliedPassword: string) {
+    if(!storedPassword) return false;
     const [hasedPassword, salt] = storedPassword.split('.');
     const buf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
 
