@@ -43,7 +43,7 @@ router.post('/api/users/signup',
         req.session= {
           jwt: userJwt
         }
-
+        console.log('A new User Created', user.id);
         res.status(201).send(user);
     })
 
