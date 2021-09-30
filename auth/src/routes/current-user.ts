@@ -1,6 +1,5 @@
 import express,{Request, Response, NextFunction} from 'express';
-import { requireAuth } from '../middlewares/require-auth';
-import { currentUser } from '../middlewares/current-user';
+import { requireAuth, currentUser } from '@d-ticket/common'
 
 const router = express.Router();
 
