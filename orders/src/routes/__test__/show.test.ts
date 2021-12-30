@@ -6,6 +6,7 @@ import { Order, OrderStatus } from '../../models/order'
 
 it('fetches the order detail', async ()=>{
   const ticket = Ticket.build({
+    id: new mongoose.Types.ObjectId().toHexString(),
     title: 'one-piece',
     price: 20
   })
@@ -28,6 +29,7 @@ it('fetches the order detail', async ()=>{
 
 it('returns error if one user tries to fetch other users order', async ()=>{
   const ticket = Ticket.build({
+    id: new mongoose.Types.ObjectId().toHexString(),
     title: 'one-piece',
     price: 20
   })
