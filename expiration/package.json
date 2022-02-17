@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@d-ticket/common": "1.0.14",
+    "@d-ticket/common": "1.0.15",
     "@types/bull": "3.15.7",
     "bull": "4.2.0",
     "ts-node": "10.1.0",

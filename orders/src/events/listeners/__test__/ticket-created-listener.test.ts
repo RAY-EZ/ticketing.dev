@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import { Ticket } from '../../../models/ticket';
 
 const setup = async ()=>{
+  // no need to listen -- gonna call onMessage and check event is acknowledged by it.
   const listener = new TicketCreatedListener(natsWrapper.client);
 
   const data: TicketCreatedEvent['data'] = {
