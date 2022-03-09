@@ -1,38 +1,69 @@
-import express, {Request, Response} from 'express';
-import { body } from 'express-validator'
-import { requireAuth, validateRequest } from '@d-ticket/common';
-import { Ticket } from '../models/ticket'
-import { TicketCreatedPublisher } from '../events/publisher/TicketCreatedPublisher';
+import  express, { Request, Response } from 'express';
+import { body } from 'express-validator';
+
+import { 
+  requireAuth,
+  validateRequest,
+  BadRequestError,
+  NotFoundError,
+  NotAuthorizedError,
+  OrderStatus
+} from '@d-ticket/common';
+import {stripe} from '../stripe'
+import { Order} from '../models/order';
+import { PaymentCompletePublisher } from '../events/publishers/payment-complete-publisher';
 import { natsWrapper } from '../nats-wrapper';
+import { Payment } from '../models/payment'
 const router = express.Router();
 
-router.post('/', 
-  requireAuth ,
+router.post('/api/payments',
+  requireAuth,
   [
-    body('title').not().isEmpty().withMessage('Title is required'),
-    body('price')
-      .isFloat({ gt: 0 })
-      .withMessage('Price must be greater than 0')
+    body('token')
+    .not()
+    .isEmpty()
+    .withMessage('token required'),
+    body('orderId')
+    .not()
+    .isEmpty()
+    .withMessage('orderid required')
   ],
   validateRequest,
-  async (req: Request, res: Response)=>{
-    const { title, price} = req.body;
-    const ticket = Ticket.build({
-      title,
-      price,
-      userId: req.currentUser!.id
-    })
-    await ticket.save();
-    await new TicketCreatedPublisher(natsWrapper.client).publish({
-      id: ticket.id,
-      title: ticket.title,
-      price: ticket.price,
-      userId: ticket.userId,
-      version: ticket.version
-    });
+  async (req: Request, res: Response)=> {
+    const { token, orderId } = req.body;
+    const order = await Order.findById(orderId);
 
-    res.status(201).send(ticket);
+    if(!order){
+      throw new NotFoundError();
+    }
+
+    if(order.userId !== req.currentUser!.id ){
+      throw new NotAuthorizedError();
+    }
+
+    if(order.status === OrderStatus.Cancelled){
+      throw new BadRequestError('cannot pay for cancelled order');
+    }
+
+    let stripeCharge = await stripe.paymentIntents.create({
+      currency: 'inr',
+      amount: order.price * 100,
+      payment_method_types: ['card']
+    })
+   
+    const payment = Payment.build({
+      orderId,
+      stripeId: stripeCharge.id
+    })
+    await payment.save();
+    console.log(stripeCharge, payment);
+    await new PaymentCompletePublisher(natsWrapper.client).publish({
+      id: payment.id,
+      orderId: payment.orderId,
+      stripeId: payment.stripeId
+    })
+    res.send({ success: true });
   }
 )
 
-export { router as createTicketRouter }
+export { router as createChargeRouter };

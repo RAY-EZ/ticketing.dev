@@ -5,6 +5,7 @@ import { TicketCreatedListener } from './events/listeners/ticket-created-listene
 import { TicketUpdatedListener } from './events/listeners/ticket-updated-listener';
 import { ExpirationCompleteListener } from './events/listeners/expiration-complete-listener';
 
+
 const start = async ()=> {
   if(!process.env.JWT_KEY){
     throw new Error('JWT key must be defined as environment variable');

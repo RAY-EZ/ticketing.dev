@@ -1,6 +1,6 @@
 import { Subjects, Listener, ExprationCompleteEvent as ExpirationCompleteEvent, ExprationCompleteEvent, OrderStatus } from "@d-ticket/common";
 import { Message } from "node-nats-streaming";
-import { natsWrapper } from "src/nats-wrapper";
+import { natsWrapper } from "../../nats-wrapper";
 import { Order } from '../../models/order';
 import { OrderCancelledPublisher } from "../publishers/order-cancelled-publisher";
 import { QueueGroupName } from './queue-group-name';
@@ -25,13 +25,17 @@ export class ExpirationCompleteListener extends Listener<ExpirationCompleteEvent
 
     await order.save();
 
-    new OrderCancelledPublisher(natsWrapper.client).publish({
+    console.log(order);
+
+    const publish = {
       id: order.id,
       version: order.version,
       ticket: {
-        id: order.ticket.id
+        id: order.ticket.toString()
       }
-    })
+    };
+    console.log('publish', publish)
+    new OrderCancelledPublisher(natsWrapper.client).publish(publish)
 
     msg.ack();
   }
